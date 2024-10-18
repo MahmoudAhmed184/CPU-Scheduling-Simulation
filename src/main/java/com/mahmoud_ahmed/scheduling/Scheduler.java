@@ -88,7 +88,47 @@ public class Scheduler {
     }
 
     public static List<ExecutionSegment> scheduleRoundRobin(Collection<Process> processes, int timeQuantum) {
-        return null;
+        List<Process> sortedProcesses = sortProcessesByArrivalTime(processes);
+
+        Queue<Process> readyQueue = new LinkedList<>();
+
+        List<ExecutionSegment> executionSegments = new LinkedList<>();
+
+        Process runningProcess = null;
+        int currentTime = 0;
+
+        while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty()) {
+            addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, currentTime);
+
+            if (isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
+                currentTime = handleIdleState(sortedProcesses.getFirst());
+                continue;
+            }
+
+            runningProcess = readyQueue.poll();
+            int startExecutionTime = currentTime;
+
+            if (runningProcess.getRemainingTime() > timeQuantum) {
+                currentTime += timeQuantum;
+                handleTimeQuantumExpiration(runningProcess, readyQueue, sortedProcesses, timeQuantum,
+                        currentTime);
+                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, currentTime));
+            } else {
+                currentTime += runningProcess.getRemainingTime();
+                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, currentTime));
+                runningProcess.resetRemainingTime();
+            }
+            runningProcess = null;
+        }
+
+        return executionSegments;
+    }
+
+    private static void handleTimeQuantumExpiration(Process process, Queue<Process> readyQueue, List<Process> processes,
+            int timeQuantum, int currentTime) {
+        process.setRemainingTime(process.getRemainingTime() - timeQuantum);
+        addArrivedProcessesToReadyQueue(processes, readyQueue, currentTime);
+        readyQueue.add(process);
     }
 
     public static List<ExecutionSegment> schedulePreemptivePriority(Collection<Process> processes) {
