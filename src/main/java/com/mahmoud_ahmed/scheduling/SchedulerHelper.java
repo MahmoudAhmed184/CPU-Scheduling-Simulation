@@ -8,6 +8,7 @@ import java.util.Queue;
 
 import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.model.ScheduledProcess;
+import com.mahmoud_ahmed.model.SchedulingClock;
 
 public class SchedulerHelper {
     private SchedulerHelper() {
@@ -20,10 +21,12 @@ public class SchedulerHelper {
         return sortedProcesses;
     }
 
-    static ScheduledProcess scheduleProcess(Process process, int startExecutionTime) {
+    static ScheduledProcess scheduleProcess(Process process, SchedulingClock clock) {
+        int startExecutionTime = clock.getCurrentTime();
         int completionTime = startExecutionTime + process.getBurstTime();
         int turnaroundTime = completionTime - process.getArrivalTime();
         int waitingTime = turnaroundTime - process.getBurstTime();
+        clock.advance(process.getBurstTime());
         return new ScheduledProcess(process, startExecutionTime, completionTime, turnaroundTime, waitingTime);
     }
 
@@ -32,14 +35,15 @@ public class SchedulerHelper {
         return !sortedProcesses.isEmpty() && readyQueue.isEmpty() && runningProcess == null;
     }
 
-    static int handleIdleState(Process firstArrivedProcess) {
-        return firstArrivedProcess.getArrivalTime();
+    static void handleIdleState(SchedulingClock clock, Process firstArrivedProcess) {
+        clock.setTime(firstArrivedProcess.getArrivalTime());
     }
 
     static void handleTimeQuantumExpiration(Process process, Queue<Process> readyQueue, List<Process> processes,
-            int timeQuantum, int currentTime) {
+            SchedulingClock clock, int timeQuantum) {
+        clock.advance(timeQuantum);
         process.setRemainingTime(process.getRemainingTime() - timeQuantum);
-        addArrivedProcessesToReadyQueue(processes, readyQueue, currentTime);
+        addArrivedProcessesToReadyQueue(processes, readyQueue, clock);
         readyQueue.add(process);
     }
 
@@ -48,8 +52,8 @@ public class SchedulerHelper {
     }
 
     static void addArrivedProcessesToReadyQueue(List<Process> sortedProcesses, Queue<Process> readyQueue,
-            int currentTime) {
-        while (!sortedProcesses.isEmpty() && sortedProcesses.getFirst().getArrivalTime() <= currentTime) {
+            SchedulingClock clock) {
+        while (!sortedProcesses.isEmpty() && clock.isBeforeOrAt(sortedProcesses.getFirst().getArrivalTime())) {
             readyQueue.add(sortedProcesses.removeFirst());
         }
     }
