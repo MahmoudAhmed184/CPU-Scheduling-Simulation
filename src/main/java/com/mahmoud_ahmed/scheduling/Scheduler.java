@@ -132,7 +132,47 @@ public class Scheduler {
     }
 
     public static List<ExecutionSegment> schedulePreemptivePriority(Collection<Process> processes) {
-        return null;
+        List<Process> sortedProcesses = sortProcessesByArrivalTime(processes);
+
+        PriorityQueue<Process> readyQueue = new PriorityQueue<>(Comparator.comparingInt(Process::getPriority)
+                .thenComparing(Comparator.naturalOrder()));
+
+        List<ExecutionSegment> executionSegments = new LinkedList<>();
+
+        Process runningProcess = null;
+        int currentTime = 0, startExecutionTime = 0;
+
+        while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty() || runningProcess != null) {
+            addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, currentTime);
+
+            if (isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
+                currentTime = handleIdleState(sortedProcesses.getFirst());
+                continue;
+            }
+
+            if (!readyQueue.isEmpty() && shouldPreempt(runningProcess, readyQueue.peek())) {
+                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, currentTime));
+                readyQueue.add(runningProcess);
+                runningProcess = null;
+            }
+
+            if (runningProcess == null && !readyQueue.isEmpty()) {
+                runningProcess = readyQueue.poll();
+                startExecutionTime = currentTime;
+            }
+            currentTime++;
+            runningProcess.setRemainingTime(runningProcess.getRemainingTime() - 1);
+            if (runningProcess.getRemainingTime() == 0) {
+                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, currentTime));
+                runningProcess.resetRemainingTime();
+                runningProcess = null;
+            }
+        }
+        return executionSegments;
+    }
+
+    private static boolean shouldPreempt(Process activeProcess, Process arrivedProcess) {
+        return activeProcess != null && activeProcess.getPriority() > arrivedProcess.getPriority();
     }
 
 }
