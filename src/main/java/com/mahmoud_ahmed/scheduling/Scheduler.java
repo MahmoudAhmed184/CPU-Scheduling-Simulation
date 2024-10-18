@@ -1,7 +1,6 @@
 package com.mahmoud_ahmed.scheduling;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,7 +32,7 @@ public class Scheduler {
     }
 
     private static List<ScheduledProcess> scheduleNonPreemptiveAlgorithm(Collection<Process> processes, Comparator<Process> comparator) {
-        List<Process> sortedProcesses = sortProcessesByArrivalTime(processes);
+        List<Process> sortedProcesses = SchedulerHelper.sortProcessesByArrivalTime(processes);
         var readyQueue = new PriorityQueue<>(comparator);
 
         List<ScheduledProcess> scheduledProcesses = new LinkedList<>();
@@ -42,15 +41,15 @@ public class Scheduler {
         int currentTime = 0;
 
         while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty()) {
-            addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, currentTime);
+            SchedulerHelper.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, currentTime);
 
-            if (isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
-                currentTime = handleIdleState(sortedProcesses.getFirst());
+            if (SchedulerHelper.isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
+                currentTime = SchedulerHelper.handleIdleState(sortedProcesses.getFirst());
                 continue;
             }
 
             runningProcess = readyQueue.poll();
-            scheduledProcesses.add(scheduleProcess(runningProcess, currentTime));
+            scheduledProcesses.add(SchedulerHelper.scheduleProcess(runningProcess, currentTime));
             currentTime += runningProcess.getBurstTime();
             runningProcess = null;
         }
@@ -58,37 +57,8 @@ public class Scheduler {
         return scheduledProcesses;
     }
 
-    private static List<Process> sortProcessesByArrivalTime(Collection<Process> processes) {
-        List<Process> sortedProcesses = new LinkedList<>(processes);
-        Collections.sort(sortedProcesses);
-        return sortedProcesses;
-    }
-
-    private static void addArrivedProcessesToReadyQueue(List<Process> sortedProcesses, Queue<Process> readyQueue,
-            int currentTime) {
-        while (!sortedProcesses.isEmpty() && sortedProcesses.getFirst().getArrivalTime() <= currentTime) {
-            readyQueue.add(sortedProcesses.removeFirst());
-        }
-    }
-
-    private static boolean isCpuInIdleState(List<Process> sortedProcesses, Queue<Process> readyQueue,
-            Process runningProcess) {
-        return !sortedProcesses.isEmpty() && readyQueue.isEmpty() && runningProcess == null;
-    }
-
-    private static int handleIdleState(Process firstArrivedProcess) {
-        return firstArrivedProcess.getArrivalTime();
-    }
-
-    private static ScheduledProcess scheduleProcess(Process process, int startExecutionTime) {
-        int completionTime = startExecutionTime + process.getBurstTime();
-        int turnaroundTime = completionTime - process.getArrivalTime();
-        int waitingTime = turnaroundTime - process.getBurstTime();
-        return new ScheduledProcess(process, startExecutionTime, completionTime, turnaroundTime, waitingTime);
-    }
-
     public static List<ExecutionSegment> scheduleRoundRobin(Collection<Process> processes, int timeQuantum) {
-        List<Process> sortedProcesses = sortProcessesByArrivalTime(processes);
+        List<Process> sortedProcesses = SchedulerHelper.sortProcessesByArrivalTime(processes);
 
         Queue<Process> readyQueue = new LinkedList<>();
 
@@ -98,10 +68,10 @@ public class Scheduler {
         int currentTime = 0;
 
         while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty()) {
-            addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, currentTime);
+            SchedulerHelper.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, currentTime);
 
-            if (isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
-                currentTime = handleIdleState(sortedProcesses.getFirst());
+            if (SchedulerHelper.isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
+                currentTime = SchedulerHelper.handleIdleState(sortedProcesses.getFirst());
                 continue;
             }
 
@@ -110,7 +80,7 @@ public class Scheduler {
 
             if (runningProcess.getRemainingTime() > timeQuantum) {
                 currentTime += timeQuantum;
-                handleTimeQuantumExpiration(runningProcess, readyQueue, sortedProcesses, timeQuantum,
+                SchedulerHelper.handleTimeQuantumExpiration(runningProcess, readyQueue, sortedProcesses, timeQuantum,
                         currentTime);
                 executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, currentTime));
             } else {
@@ -124,15 +94,8 @@ public class Scheduler {
         return executionSegments;
     }
 
-    private static void handleTimeQuantumExpiration(Process process, Queue<Process> readyQueue, List<Process> processes,
-            int timeQuantum, int currentTime) {
-        process.setRemainingTime(process.getRemainingTime() - timeQuantum);
-        addArrivedProcessesToReadyQueue(processes, readyQueue, currentTime);
-        readyQueue.add(process);
-    }
-
     public static List<ExecutionSegment> schedulePreemptivePriority(Collection<Process> processes) {
-        List<Process> sortedProcesses = sortProcessesByArrivalTime(processes);
+        List<Process> sortedProcesses = SchedulerHelper.sortProcessesByArrivalTime(processes);
 
         PriorityQueue<Process> readyQueue = new PriorityQueue<>(Comparator.comparingInt(Process::getPriority)
                 .thenComparing(Comparator.naturalOrder()));
@@ -143,14 +106,14 @@ public class Scheduler {
         int currentTime = 0, startExecutionTime = 0;
 
         while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty() || runningProcess != null) {
-            addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, currentTime);
+            SchedulerHelper.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, currentTime);
 
-            if (isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
-                currentTime = handleIdleState(sortedProcesses.getFirst());
+            if (SchedulerHelper.isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
+                currentTime = SchedulerHelper.handleIdleState(sortedProcesses.getFirst());
                 continue;
             }
 
-            if (!readyQueue.isEmpty() && shouldPreempt(runningProcess, readyQueue.peek())) {
+            if (!readyQueue.isEmpty() && SchedulerHelper.shouldPreempt(runningProcess, readyQueue.peek())) {
                 executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, currentTime));
                 readyQueue.add(runningProcess);
                 runningProcess = null;
@@ -169,10 +132,6 @@ public class Scheduler {
             }
         }
         return executionSegments;
-    }
-
-    private static boolean shouldPreempt(Process activeProcess, Process arrivedProcess) {
-        return activeProcess != null && activeProcess.getPriority() > arrivedProcess.getPriority();
     }
 
 }
