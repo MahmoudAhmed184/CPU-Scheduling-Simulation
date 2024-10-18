@@ -10,6 +10,7 @@ import java.util.Queue;
 import com.mahmoud_ahmed.model.ExecutionSegment;
 import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.model.ScheduledProcess;
+import com.mahmoud_ahmed.model.SchedulingClock;
 
 public class Scheduler {
 
@@ -36,22 +37,17 @@ public class Scheduler {
         var readyQueue = new PriorityQueue<>(comparator);
 
         List<ScheduledProcess> scheduledProcesses = new LinkedList<>();
-        Process runningProcess = null;
-
-        int currentTime = 0;
+        SchedulingClock clock = new SchedulingClock();
 
         while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty()) {
-            SchedulerHelper.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, currentTime);
+            SchedulerHelper.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, clock);
 
-            if (SchedulerHelper.isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
-                currentTime = SchedulerHelper.handleIdleState(sortedProcesses.getFirst());
+            if (SchedulerHelper.isCpuInIdleState(sortedProcesses, readyQueue, null)) {
+                SchedulerHelper.handleIdleState(clock, sortedProcesses.getFirst());
                 continue;
             }
 
-            runningProcess = readyQueue.poll();
-            scheduledProcesses.add(SchedulerHelper.scheduleProcess(runningProcess, currentTime));
-            currentTime += runningProcess.getBurstTime();
-            runningProcess = null;
+            scheduledProcesses.add(SchedulerHelper.scheduleProcess(readyQueue.poll(), clock));
         }
 
         return scheduledProcesses;
@@ -65,27 +61,25 @@ public class Scheduler {
         List<ExecutionSegment> executionSegments = new LinkedList<>();
 
         Process runningProcess = null;
-        int currentTime = 0;
+        SchedulingClock clock = new SchedulingClock();
 
         while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty()) {
-            SchedulerHelper.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, currentTime);
+            SchedulerHelper.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, clock);
 
             if (SchedulerHelper.isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
-                currentTime = SchedulerHelper.handleIdleState(sortedProcesses.getFirst());
+                SchedulerHelper.handleIdleState(clock, sortedProcesses.getFirst());
                 continue;
             }
 
             runningProcess = readyQueue.poll();
-            int startExecutionTime = currentTime;
+            int startExecutionTime = clock.getCurrentTime();
 
             if (runningProcess.getRemainingTime() > timeQuantum) {
-                currentTime += timeQuantum;
-                SchedulerHelper.handleTimeQuantumExpiration(runningProcess, readyQueue, sortedProcesses, timeQuantum,
-                        currentTime);
-                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, currentTime));
+                SchedulerHelper.handleTimeQuantumExpiration(runningProcess, readyQueue, sortedProcesses, clock, timeQuantum);
+                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, clock.getCurrentTime()));
             } else {
-                currentTime += runningProcess.getRemainingTime();
-                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, currentTime));
+                clock.advance(runningProcess.getRemainingTime());
+                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, clock.getCurrentTime()));
                 runningProcess.resetRemainingTime();
             }
             runningProcess = null;
@@ -103,30 +97,33 @@ public class Scheduler {
         List<ExecutionSegment> executionSegments = new LinkedList<>();
 
         Process runningProcess = null;
-        int currentTime = 0, startExecutionTime = 0;
+
+        SchedulingClock clock = new SchedulingClock();
+
+        int startExecutionTime = 0;
 
         while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty() || runningProcess != null) {
-            SchedulerHelper.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, currentTime);
+            SchedulerHelper.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, clock);
 
             if (SchedulerHelper.isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
-                currentTime = SchedulerHelper.handleIdleState(sortedProcesses.getFirst());
+                SchedulerHelper.handleIdleState(clock, sortedProcesses.getFirst());
                 continue;
             }
 
             if (!readyQueue.isEmpty() && SchedulerHelper.shouldPreempt(runningProcess, readyQueue.peek())) {
-                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, currentTime));
+                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, clock.getCurrentTime()));
                 readyQueue.add(runningProcess);
                 runningProcess = null;
             }
 
             if (runningProcess == null && !readyQueue.isEmpty()) {
                 runningProcess = readyQueue.poll();
-                startExecutionTime = currentTime;
+                startExecutionTime = clock.getCurrentTime();
             }
-            currentTime++;
+            clock.increment();
             runningProcess.setRemainingTime(runningProcess.getRemainingTime() - 1);
             if (runningProcess.getRemainingTime() == 0) {
-                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, currentTime));
+                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, clock.getCurrentTime()));
                 runningProcess.resetRemainingTime();
                 runningProcess = null;
             }
