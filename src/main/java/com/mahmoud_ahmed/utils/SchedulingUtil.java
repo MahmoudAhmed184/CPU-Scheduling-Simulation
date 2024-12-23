@@ -1,35 +1,53 @@
 package com.mahmoud_ahmed.utils;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.model.ExecutionSegment;
-import com.mahmoud_ahmed.model.ScheduledProcess;
+import com.mahmoud_ahmed.model.ProcessMetrics;
+import com.mahmoud_ahmed.model.SchedulingClock;
 
 public class SchedulingUtil {
 
     private SchedulingUtil() {
 
     }
-
-    public static double calculateAverageWaitingTime(List<ScheduledProcess> scheduledProcesses) {
-        return scheduledProcesses.stream()
-                .mapToInt(ScheduledProcess::getWaitingTime)
-                .sum()
-                / (double) scheduledProcesses.size();
+    public static List<Process> sortProcessesByArrivalTime(Collection<Process> processes) {
+        List<Process> sortedProcesses = new LinkedList<>(processes);
+        Collections.sort(sortedProcesses);
+        return sortedProcesses;
     }
 
-    public static double calculateAverageTurnaroundTime(List<ScheduledProcess> scheduledProcesses) {
-        return scheduledProcesses.stream()
-                .mapToInt(ScheduledProcess::getTurnaroundTime)
-                .sum()
-                / (double) scheduledProcesses.size();
+    public static boolean isCpuInIdleState(List<Process> processes, Queue<Process> readyQueue, Process activeProcess) {
+        return !processes.isEmpty() && readyQueue.isEmpty() && activeProcess == null;
     }
 
-    public static List<ScheduledProcess> assembleExecutionSegments(List<ExecutionSegment> executionSegments) {
+    public static void handleIdleState(SchedulingClock clock, Process firstArrivedProcess) {
+        clock.setTime(firstArrivedProcess.getArrivalTime());
+    }
+
+    public static void addArrivedProcessesToReadyQueue(List<Process> sortedProcesses, Queue<Process> readyQueue,
+                                                       SchedulingClock clock) {
+        while (!sortedProcesses.isEmpty() && clock.isBeforeOrAt(sortedProcesses.getFirst().getArrivalTime())) {
+            readyQueue.add(sortedProcesses.removeFirst());
+        }
+    }
+
+    public static double calculateAverageWaitingTime(List<ProcessMetrics> processMetrics) {
+        return processMetrics.stream()
+                .mapToInt(ProcessMetrics::getWaitingTime)
+                .sum()
+                / (double) processMetrics.size();
+    }
+
+    public static double calculateAverageTurnaroundTime(List<ProcessMetrics> processMetrics) {
+        return processMetrics.stream()
+                .mapToInt(ProcessMetrics::getTurnaroundTime)
+                .sum()
+                / (double) processMetrics.size();
+    }
+
+    public static List<ProcessMetrics> assembleExecutionSegments(List<ExecutionSegment> executionSegments) {
         Map<Long, List<ExecutionSegment>> processSegments = groupByProcess(executionSegments);
         return processSegments.values().stream()
                 .map(SchedulingUtil::assembleProcessSegments)
@@ -47,13 +65,10 @@ public class SchedulingUtil {
         return processSegments;
     }
 
-    public static ScheduledProcess assembleProcessSegments(List<ExecutionSegment> segments) {
+    public static ProcessMetrics assembleProcessSegments(List<ExecutionSegment> segments) {
         Process process = segments.getFirst().getProcess();
         int startExecutionTime = segments.getFirst().getStartTime();
         int completionTime = segments.getLast().getEndTime();
-        int turnaroundTime = completionTime - process.getArrivalTime();
-        int waitingTime = turnaroundTime - process.getBurstTime();
-
-        return new ScheduledProcess(process, startExecutionTime, completionTime, turnaroundTime, waitingTime);
+        return new ProcessMetrics(process, startExecutionTime, completionTime);
     }
 }

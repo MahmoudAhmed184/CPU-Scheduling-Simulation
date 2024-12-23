@@ -8,20 +8,20 @@ import java.util.Queue;
 
 import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.model.SchedulingClock;
-import com.mahmoud_ahmed.scheduling.SchedulerHelper;
 import com.mahmoud_ahmed.model.ExecutionSegment;
+import com.mahmoud_ahmed.utils.SchedulingUtil;
 
 public class PreemptivePriority implements SchedulingAlgorithm {
     private final Queue<Process> readyQueue;
 
     public PreemptivePriority() {
         readyQueue = new PriorityQueue<>(Comparator.comparingInt(Process::getPriority)
-                .thenComparing(Comparator.naturalOrder()));
+            .thenComparing(Comparator.naturalOrder()));
     }
 
     @Override
     public List<ExecutionSegment> schedule(List<Process> processes) {
-        List<Process> sortedProcesses = SchedulerHelper.sortProcessesByArrivalTime(processes);
+        List<Process> sortedProcesses = SchedulingUtil.sortProcessesByArrivalTime(processes);
         List<ExecutionSegment> executionSegments = new LinkedList<>();
 
         Process runningProcess = null;
@@ -29,14 +29,14 @@ public class PreemptivePriority implements SchedulingAlgorithm {
         int startExecutionTime = 0;
 
         while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty() || runningProcess != null) {
-            SchedulerHelper.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, clock);
+            SchedulingUtil.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, clock);
 
-            if (SchedulerHelper.isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
-                SchedulerHelper.handleIdleState(clock, sortedProcesses.getFirst());
+            if (SchedulingUtil.isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
+                SchedulingUtil.handleIdleState(clock, sortedProcesses.getFirst());
                 continue;
             }
 
-            if (!readyQueue.isEmpty() && SchedulerHelper.shouldPreempt(runningProcess, readyQueue.peek())) {
+            if (!readyQueue.isEmpty() && shouldPreempt(runningProcess, readyQueue.peek())) {
                 executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, clock.getCurrentTime()));
                 readyQueue.add(runningProcess);
                 runningProcess = null;
@@ -57,4 +57,7 @@ public class PreemptivePriority implements SchedulingAlgorithm {
         return executionSegments;
     }
 
+    private static boolean shouldPreempt(Process activeProcess, Process arrivedProcess) {
+        return activeProcess != null && activeProcess.getPriority() > arrivedProcess.getPriority();
+    }
 }

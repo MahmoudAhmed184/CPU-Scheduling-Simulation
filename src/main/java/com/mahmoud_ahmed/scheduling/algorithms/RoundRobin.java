@@ -6,21 +6,21 @@ import java.util.Queue;
 
 import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.model.SchedulingClock;
-import com.mahmoud_ahmed.scheduling.SchedulerHelper;
 import com.mahmoud_ahmed.model.ExecutionSegment;
+import com.mahmoud_ahmed.utils.SchedulingUtil;
 
 public class RoundRobin implements SchedulingAlgorithm {
+    private final Queue<Process> readyQueue;
     private final int timeQuantum;
 
     public RoundRobin(int timeQuantum){
+        this.readyQueue = new LinkedList<>();
         this.timeQuantum = timeQuantum;
     }
 
     @Override
     public List<ExecutionSegment> schedule(List<Process> processes) {
-        List<Process> sortedProcesses = SchedulerHelper.sortProcessesByArrivalTime(processes);
-
-        Queue<Process> readyQueue = new LinkedList<>();
+        List<Process> sortedProcesses = SchedulingUtil.sortProcessesByArrivalTime(processes);
 
         List<ExecutionSegment> executionSegments = new LinkedList<>();
 
@@ -28,10 +28,10 @@ public class RoundRobin implements SchedulingAlgorithm {
         SchedulingClock clock = new SchedulingClock();
 
         while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty()) {
-            SchedulerHelper.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, clock);
+            SchedulingUtil.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, clock);
 
-            if (SchedulerHelper.isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
-                SchedulerHelper.handleIdleState(clock, sortedProcesses.getFirst());
+            if (SchedulingUtil.isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
+                SchedulingUtil.handleIdleState(clock, sortedProcesses.getFirst());
                 continue;
             }
 
@@ -39,8 +39,7 @@ public class RoundRobin implements SchedulingAlgorithm {
             int startExecutionTime = clock.getCurrentTime();
 
             if (runningProcess.getRemainingTime() > timeQuantum) {
-                SchedulerHelper.handleTimeQuantumExpiration(runningProcess, readyQueue, sortedProcesses, clock,
-                        timeQuantum);
+                handleTimeQuantumExpiration(runningProcess, sortedProcesses, clock);
                 executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, clock.getCurrentTime()));
             } else {
                 clock.advance(runningProcess.getRemainingTime());
@@ -51,5 +50,12 @@ public class RoundRobin implements SchedulingAlgorithm {
         }
 
         return executionSegments;
+    }
+
+    private void handleTimeQuantumExpiration(Process process, List<Process> processes, SchedulingClock clock) {
+        clock.advance(timeQuantum);
+        process.setRemainingTime(process.getRemainingTime() - timeQuantum);
+        SchedulingUtil.addArrivedProcessesToReadyQueue(processes, readyQueue, clock);
+        readyQueue.add(process);
     }
 }

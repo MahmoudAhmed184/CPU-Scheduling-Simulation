@@ -8,8 +8,8 @@ import java.util.Queue;
 
 import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.model.SchedulingClock;
-import com.mahmoud_ahmed.scheduling.SchedulerHelper;
 import com.mahmoud_ahmed.model.ExecutionSegment;
+import com.mahmoud_ahmed.utils.SchedulingUtil;
 
 public abstract class NonPreemptiveAlgorithm implements SchedulingAlgorithm {
     private final Queue<Process> readyQueue;
@@ -20,22 +20,29 @@ public abstract class NonPreemptiveAlgorithm implements SchedulingAlgorithm {
 
     @Override
     public List<ExecutionSegment> schedule(List<Process> processes) {
-        List<Process> sortedProcesses = SchedulerHelper.sortProcessesByArrivalTime(processes);
+        List<Process> sortedProcesses = SchedulingUtil.sortProcessesByArrivalTime(processes);
 
         List<ExecutionSegment> executionSegments = new LinkedList<>();
         SchedulingClock clock = new SchedulingClock();
 
         while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty()) {
-            SchedulerHelper.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, clock);
+            SchedulingUtil.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, clock);
 
-            if (SchedulerHelper.isCpuInIdleState(sortedProcesses, readyQueue, null)) {
-                SchedulerHelper.handleIdleState(clock, sortedProcesses.getFirst());
+            if (SchedulingUtil.isCpuInIdleState(sortedProcesses, readyQueue, null)) {
+                SchedulingUtil.handleIdleState(clock, sortedProcesses.getFirst());
                 continue;
             }
 
-            executionSegments.add(SchedulerHelper.scheduleProcess(readyQueue.poll(), clock));
+            executionSegments.add(scheduleProcess(readyQueue.poll(), clock));
         }
 
         return executionSegments;
+    }
+
+    private static ExecutionSegment scheduleProcess(Process process, SchedulingClock clock) {
+        int startExecutionTime = clock.getCurrentTime();
+        int completionTime = startExecutionTime + process.getBurstTime();
+        clock.advance(process.getBurstTime());
+        return new ExecutionSegment(process, startExecutionTime, completionTime);
     }
 }
