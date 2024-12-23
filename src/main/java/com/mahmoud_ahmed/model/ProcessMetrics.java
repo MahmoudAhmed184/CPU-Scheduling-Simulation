@@ -2,20 +2,19 @@ package com.mahmoud_ahmed.model;
 
 import java.util.List;
 
-public class ScheduledProcess {
+public class ProcessMetrics {
     private final Process process;
     private final int startExecutionTime;
     private final int completionTime;
     private final int turnaroundTime;
     private final int waitingTime;
 
-    public ScheduledProcess(Process process, int startExecutionTime, int completionTime, int turnaroundTime,
-            int waitingTime) {
+    public ProcessMetrics(Process process, int startExecutionTime, int completionTime) {
         this.process = process;
         this.startExecutionTime = startExecutionTime;
         this.completionTime = completionTime;
-        this.turnaroundTime = turnaroundTime;
-        this.waitingTime = waitingTime;
+        this.turnaroundTime = completionTime - process.getArrivalTime();
+        this.waitingTime = turnaroundTime - process.getBurstTime();
     }
 
     public Process getProcess() {
@@ -23,7 +22,7 @@ public class ScheduledProcess {
     }
 
     public int getStartExecutionTime() {
-        return this.startExecutionTime;
+        return startExecutionTime;
     }
 
     public int getCompletionTime() {
