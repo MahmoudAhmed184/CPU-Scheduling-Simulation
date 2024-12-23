@@ -21,7 +21,7 @@ public class PreemptivePriority implements SchedulingAlgorithm {
 
     @Override
     public List<ExecutionSegment> schedule(List<Process> processes) {
-        List<Process> sortedProcesses = SchedulingUtil.sortProcessesByArrivalTime(processes);
+        List<Process> sortedProcesses = SchedulingUtil.sortedProcessesByArrivalTime(processes);
         List<ExecutionSegment> executionSegments = new LinkedList<>();
 
         Process runningProcess = null;
