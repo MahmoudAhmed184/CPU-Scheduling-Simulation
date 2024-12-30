@@ -31,7 +31,7 @@ public abstract class PreemptiveAlgorithm implements SchedulingAlgorithm {
                 continue;
             }
 
-            if (!readyQueue.isEmpty() && shouldPreempt(runningProcess, readyQueue.peek())) {
+            if (shouldPreempt(runningProcess, readyQueue.peek())) {
                 executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, clock.getCurrentTime()));
                 readyQueue.add(runningProcess);
                 runningProcess = null;
