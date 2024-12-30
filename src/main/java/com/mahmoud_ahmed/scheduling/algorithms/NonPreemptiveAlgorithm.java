@@ -15,7 +15,7 @@ public abstract class NonPreemptiveAlgorithm implements SchedulingAlgorithm {
     private final Queue<Process> readyQueue;
 
     public NonPreemptiveAlgorithm(Comparator<Process> comparator) {
-        readyQueue = new PriorityQueue<>(comparator);
+        readyQueue = comparator == null ? new LinkedList<>() : new PriorityQueue<>(comparator);
     }
 
     @Override
