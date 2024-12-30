@@ -58,7 +58,7 @@ public class SchedulingUtil {
         Map<Long, List<ExecutionSegment>> processSegments = new HashMap<>();
 
         for (ExecutionSegment segment : executionSegments) {
-            long processId = segment.getProcess().getProcessId();
+            long processId = segment.process().getProcessId();
             processSegments.computeIfAbsent(processId, k -> new LinkedList<>()).add(segment);
         }
 
@@ -66,9 +66,9 @@ public class SchedulingUtil {
     }
 
     public static ProcessMetrics assembleProcessSegments(List<ExecutionSegment> segments) {
-        Process process = segments.getFirst().getProcess();
-        int startExecutionTime = segments.getFirst().getStartTime();
-        int completionTime = segments.getLast().getEndTime();
+        Process process = segments.getFirst().process();
+        int startExecutionTime = segments.getFirst().startTime();
+        int completionTime = segments.getLast().endTime();
         return new ProcessMetrics(process, startExecutionTime, completionTime);
     }
 }
