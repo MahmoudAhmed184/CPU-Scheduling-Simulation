@@ -1,6 +1,7 @@
 package com.mahmoud_ahmed.scheduling.algorithms;
 
 import java.util.Comparator;
+
 import com.mahmoud_ahmed.model.Process;
 
 public class PreemptivePriority extends PreemptiveAlgorithm {
@@ -12,6 +13,6 @@ public class PreemptivePriority extends PreemptiveAlgorithm {
 
     @Override
     boolean shouldPreempt(Process activeProcess, Process arrivedProcess) {
-        return activeProcess != null && activeProcess.getPriority() > arrivedProcess.getPriority();
+        return activeProcess != null && arrivedProcess != null && activeProcess.getPriority() > arrivedProcess.getPriority();
     }
 }
