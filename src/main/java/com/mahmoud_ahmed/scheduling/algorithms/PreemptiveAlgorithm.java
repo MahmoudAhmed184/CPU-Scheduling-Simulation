@@ -10,8 +10,8 @@ import java.util.*;
 public abstract class PreemptiveAlgorithm implements SchedulingAlgorithm {
     private final Queue<Process> readyQueue;
 
-    public PreemptiveAlgorithm(Queue<Process> readyQueue) {
-        this.readyQueue = readyQueue;
+    public PreemptiveAlgorithm(Comparator<Process> comparator) {
+        this.readyQueue = comparator == null ? new LinkedList<>() : new PriorityQueue<>(comparator);
     }
 
     @Override
