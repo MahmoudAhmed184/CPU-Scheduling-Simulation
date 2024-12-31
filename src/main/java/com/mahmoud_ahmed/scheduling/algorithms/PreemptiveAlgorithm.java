@@ -1,55 +1,55 @@
 package com.mahmoud_ahmed.scheduling.algorithms;
 
-import com.mahmoud_ahmed.model.ExecutionSegment;
+import com.mahmoud_ahmed.model.*;
 import com.mahmoud_ahmed.model.Process;
-import com.mahmoud_ahmed.model.SchedulingClock;
-import com.mahmoud_ahmed.utils.SchedulingUtil;
 
 import java.util.*;
 
 public abstract class PreemptiveAlgorithm implements SchedulingAlgorithm {
-    private final Queue<Process> readyQueue;
+    private final Comparator<Process> comparator;
 
     public PreemptiveAlgorithm(Comparator<Process> comparator) {
-        this.readyQueue = comparator == null ? new LinkedList<>() : new PriorityQueue<>(comparator);
+        this.comparator = comparator;
     }
 
     @Override
     public List<ExecutionSegment> schedule(List<Process> processes) {
-        List<Process> sortedProcesses = SchedulingUtil.sortedProcessesByArrivalTime(processes);
-        List<ExecutionSegment> executionSegments = new LinkedList<>();
-
-        Process runningProcess = null;
-        SchedulingClock clock = new SchedulingClock();
-        int startExecutionTime = 0;
-
-        while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty() || runningProcess != null) {
-            SchedulingUtil.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, clock);
-
-            if (SchedulingUtil.isCpuInIdleState(sortedProcesses, readyQueue, runningProcess)) {
-                SchedulingUtil.handleIdleState(clock, sortedProcesses.getFirst());
+        SchedulingState state = new SchedulingState(processes, comparator);
+        ExecutionSegmentBuilder builder = new ExecutionSegmentBuilder();
+        while (state.hasUnfinishedProcesses()) {
+            state.moveArrivedProcessesToReadyQueue();
+            if (state.isCpuInIdleState()) {
+                state.handleIdleState();
                 continue;
             }
-
-            if (shouldPreempt(runningProcess, readyQueue.peek())) {
-                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, clock.getCurrentTime()));
-                readyQueue.add(runningProcess);
-                runningProcess = null;
-            }
-
-            if (runningProcess == null && !readyQueue.isEmpty()) {
-                runningProcess = readyQueue.poll();
-                startExecutionTime = clock.getCurrentTime();
-            }
-            clock.increment();
-            runningProcess.setRemainingTime(runningProcess.getRemainingTime() - 1);
-            if (runningProcess.getRemainingTime() == 0) {
-                executionSegments.add(new ExecutionSegment(runningProcess, startExecutionTime, clock.getCurrentTime()));
-                runningProcess.resetRemainingTime();
-                runningProcess = null;
-            }
+            handlePreemption(state, builder);
+            selectProcessToRun(state, builder);
+            state.scheduleActiveProcessFor(1);
+            handleFinishedProcess(state, builder);
         }
-        return executionSegments;
+        return state.getExecutionHistory();
+    }
+
+    private static void selectProcessToRun(SchedulingState state, ExecutionSegmentBuilder builder) {
+        if (!state.hasActiveProcess() && state.hasReadyProcesses()) {
+            state.pollReadyProcessToSchedule();
+            builder.withProcess(state.getActiveProcess())
+                .withStartTime(state.getCurrentTime());
+        }
+    }
+
+    private static void handleFinishedProcess(SchedulingState state, ExecutionSegmentBuilder builder) {
+        if (state.hasActiveProcessFinished()) {
+            state.recordExecutionSegment(builder.withEndTime(state.getCurrentTime()).build());
+            state.setActiveProcess(null);
+        }
+    }
+
+    private void handlePreemption(SchedulingState state, ExecutionSegmentBuilder builder) {
+        if (shouldPreempt(state.getActiveProcess(), state.peekNextReadyProcess())) {
+            state.recordExecutionSegment(builder.withEndTime(state.getCurrentTime()).build());
+            state.preemptActiveProcess();
+        }
     }
 
     abstract boolean shouldPreempt(Process activeProcess, Process arrivedProcess);
