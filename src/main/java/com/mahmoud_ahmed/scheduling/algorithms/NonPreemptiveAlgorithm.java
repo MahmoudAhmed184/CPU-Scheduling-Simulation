@@ -1,48 +1,32 @@
 package com.mahmoud_ahmed.scheduling.algorithms;
 
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Queue;
-
 import com.mahmoud_ahmed.model.Process;
-import com.mahmoud_ahmed.model.SchedulingClock;
 import com.mahmoud_ahmed.model.ExecutionSegment;
-import com.mahmoud_ahmed.utils.SchedulingUtil;
+import com.mahmoud_ahmed.model.SchedulingState;
 
 public abstract class NonPreemptiveAlgorithm implements SchedulingAlgorithm {
-    private final Queue<Process> readyQueue;
+    private final Comparator<Process> comparator;
 
     public NonPreemptiveAlgorithm(Comparator<Process> comparator) {
-        readyQueue = comparator == null ? new LinkedList<>() : new PriorityQueue<>(comparator);
+        this.comparator = comparator;
     }
 
     @Override
     public List<ExecutionSegment> schedule(List<Process> processes) {
-        List<Process> sortedProcesses = SchedulingUtil.sortedProcessesByArrivalTime(processes);
+        SchedulingState state = new SchedulingState(processes, comparator);
 
-        List<ExecutionSegment> executionSegments = new LinkedList<>();
-        SchedulingClock clock = new SchedulingClock();
-
-        while (!sortedProcesses.isEmpty() || !readyQueue.isEmpty()) {
-            SchedulingUtil.addArrivedProcessesToReadyQueue(sortedProcesses, readyQueue, clock);
-
-            if (SchedulingUtil.isCpuInIdleState(sortedProcesses, readyQueue, null)) {
-                SchedulingUtil.handleIdleState(clock, sortedProcesses.getFirst());
+        while (state.hasUnfinishedProcesses()) {
+            state.moveArrivedProcessesToReadyQueue();
+            if (state.isCpuInIdleState()) {
+                state.handleIdleState();
                 continue;
             }
-
-            executionSegments.add(scheduleProcess(readyQueue.poll(), clock));
+            state.pollReadyProcessToSchedule();
+            state.scheduleActiveProcess();
         }
 
-        return executionSegments;
-    }
-
-    private static ExecutionSegment scheduleProcess(Process process, SchedulingClock clock) {
-        int startExecutionTime = clock.getCurrentTime();
-        int completionTime = startExecutionTime + process.getBurstTime();
-        clock.advance(process.getBurstTime());
-        return new ExecutionSegment(process, startExecutionTime, completionTime);
+        return state.getExecutionHistory();
     }
 }
