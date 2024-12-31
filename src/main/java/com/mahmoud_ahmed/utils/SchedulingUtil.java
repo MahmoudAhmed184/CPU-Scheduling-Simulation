@@ -5,32 +5,17 @@ import java.util.stream.Collectors;
 import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.model.ExecutionSegment;
 import com.mahmoud_ahmed.model.ProcessMetrics;
-import com.mahmoud_ahmed.model.SchedulingClock;
 
 public class SchedulingUtil {
 
     private SchedulingUtil() {
 
     }
+
     public static List<Process> sortedProcessesByArrivalTime(Collection<Process> processes) {
         List<Process> sortedProcesses = new LinkedList<>(processes);
         Collections.sort(sortedProcesses);
         return sortedProcesses;
-    }
-
-    public static boolean isCpuInIdleState(List<Process> processes, Queue<Process> readyQueue, Process activeProcess) {
-        return !processes.isEmpty() && readyQueue.isEmpty() && activeProcess == null;
-    }
-
-    public static void handleIdleState(SchedulingClock clock, Process firstArrivedProcess) {
-        clock.setTime(firstArrivedProcess.getArrivalTime());
-    }
-
-    public static void addArrivedProcessesToReadyQueue(List<Process> sortedProcesses, Queue<Process> readyQueue,
-                                                       SchedulingClock clock) {
-        while (!sortedProcesses.isEmpty() && clock.isBeforeOrAt(sortedProcesses.getFirst().getArrivalTime())) {
-            readyQueue.add(sortedProcesses.removeFirst());
-        }
     }
 
     public static double calculateAverageWaitingTime(List<ProcessMetrics> processMetrics) {
