@@ -18,6 +18,15 @@ public final class Process implements Comparable<Process> {
         this.remainingTime = burstTime;
     }
 
+    public Process(Process other) {
+        this.processId = counter++;
+        this.processNumber = other.processNumber;
+        this.arrivalTime = other.arrivalTime;
+        this.burstTime = other.burstTime;
+        this.priority = other.priority;
+        this.remainingTime = other.remainingTime;
+    }
+
     public long getProcessId() {
         return this.processId;
     }
@@ -44,10 +53,6 @@ public final class Process implements Comparable<Process> {
 
     public void setRemainingTime(int remainingTime) {
         this.remainingTime = remainingTime;
-    }
-
-    public void resetRemainingTime() {
-        this.remainingTime = this.burstTime;
     }
 
     @Override
