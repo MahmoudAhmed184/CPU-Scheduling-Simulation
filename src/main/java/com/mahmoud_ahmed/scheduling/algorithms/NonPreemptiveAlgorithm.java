@@ -2,6 +2,7 @@ package com.mahmoud_ahmed.scheduling.algorithms;
 
 import java.util.Comparator;
 import java.util.List;
+
 import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.model.ExecutionSegment;
 import com.mahmoud_ahmed.model.SchedulingState;
@@ -24,9 +25,16 @@ public abstract class NonPreemptiveAlgorithm implements SchedulingAlgorithm {
                 continue;
             }
             state.pollReadyProcessToSchedule();
-            state.scheduleActiveProcess();
+            scheduleActiveProcess(state);
         }
 
         return state.getExecutionHistory();
+    }
+
+    public void scheduleActiveProcess(SchedulingState state) {
+        int startTime = state.getCurrentTime();
+        state.advanceClock(state.getActiveProcess().getBurstTime());
+        state.recordExecutionSegment(new ExecutionSegment(state.getActiveProcess(), startTime, state.getCurrentTime()));
+        state.setActiveProcess(null);
     }
 }

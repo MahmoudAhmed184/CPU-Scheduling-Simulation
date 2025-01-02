@@ -69,18 +69,6 @@ public class SchedulingState {
         clock.setTime(processes.getFirst().getArrivalTime());
     }
 
-    public void scheduleActiveProcess() {
-        int startTime = clock.getCurrentTime();
-        clock.advance(activeProcess.getBurstTime());
-        timeline.add(new ExecutionSegment(activeProcess, startTime, clock.getCurrentTime()));
-        activeProcess = null;
-    }
-
-    public void scheduleActiveProcessFor(int time) {
-        clock.advance(time);
-        activeProcess.setRemainingTime(activeProcess.getRemainingTime() - time);
-    }
-
     public void pollReadyProcessToSchedule() {
         activeProcess = readyQueue.poll();
     }
@@ -97,16 +85,19 @@ public class SchedulingState {
         return activeProcess.getRemainingTime() == 0;
     }
 
-    public void preemptActiveProcess() {
-        readyQueue.add(activeProcess);
-        activeProcess = null;
-    }
-
     public void recordExecutionSegment(ExecutionSegment executionSegment) {
         timeline.add(executionSegment);
     }
 
     public List<ExecutionSegment> getExecutionHistory() {
         return timeline;
+    }
+
+    public void addProcessToReadyQueue(Process process) {
+        readyQueue.add(process);
+    }
+
+    public void advanceClock(int time) {
+        clock.advance(time);
     }
 }

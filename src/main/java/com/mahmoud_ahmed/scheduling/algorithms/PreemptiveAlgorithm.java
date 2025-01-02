@@ -24,7 +24,7 @@ public abstract class PreemptiveAlgorithm implements SchedulingAlgorithm {
             }
             handlePreemption(state, builder);
             selectProcessToRun(state, builder);
-            state.scheduleActiveProcessFor(1);
+            scheduleActiveProcessFor(state, 1);
             handleFinishedProcess(state, builder);
         }
         return state.getExecutionHistory();
@@ -48,9 +48,21 @@ public abstract class PreemptiveAlgorithm implements SchedulingAlgorithm {
     private void handlePreemption(SchedulingState state, ExecutionSegmentBuilder builder) {
         if (shouldPreempt(state.getActiveProcess(), state.peekNextReadyProcess())) {
             state.recordExecutionSegment(builder.withEndTime(state.getCurrentTime()).build());
-            state.preemptActiveProcess();
+            preemptActiveProcess(state);
         }
     }
+
+    public void preemptActiveProcess(SchedulingState state) {
+        state.addProcessToReadyQueue(state.getActiveProcess());
+        state.setActiveProcess(null);
+    }
+
+    public void scheduleActiveProcessFor(SchedulingState state, int time) {
+        state.advanceClock(time);
+        Process activeProcess = state.getActiveProcess();
+        activeProcess.setRemainingTime(activeProcess.getRemainingTime() - time);
+    }
+
 
     abstract boolean shouldPreempt(Process activeProcess, Process arrivedProcess);
 }
