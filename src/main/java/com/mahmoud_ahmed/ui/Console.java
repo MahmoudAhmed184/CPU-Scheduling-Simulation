@@ -19,7 +19,7 @@ public class Console {
     }
 
     public void display(Result result) {
-        List<List<String>> segmentRows = result.getExecutionSegments().stream()
+        List<List<String>> segmentRows = result.executionSegments().stream()
                 .map(ExecutionSegment::toList)
                 .collect(Collectors.toList());
 
@@ -27,7 +27,10 @@ public class Console {
         System.out.println(tableGenerator.generateTable(Arrays.asList(SEGMENT_TABLE_HEADERS), segmentRows));
         
         System.out.println("Aggregated Process Statistics:");
-        List<List<String>> rows = result.getMetrics().stream().map(ProcessMetrics::toList).collect(Collectors.toList());
+        List<List<String>> rows = result.metrics().stream().map(ProcessMetrics::toList).collect(Collectors.toList());
         System.out.println(tableGenerator.generateTable(Arrays.asList(TABLE_HEADERS), rows));
+
+        System.out.println("Algorithm Average Waiting Time: " + result.algorithmAverageWaitingTime());
+        System.out.println("Algorithm Average Turnaround Time: " + result.algorithmAverageTurnaroundTime());
     }
 }
