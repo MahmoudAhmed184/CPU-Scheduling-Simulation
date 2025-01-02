@@ -1,5 +1,7 @@
 package com.mahmoud_ahmed.model;
 
+import java.util.Comparator;
+
 public final class Process implements Comparable<Process> {
     private static long counter = 0;
     private final long processId;
@@ -57,7 +59,8 @@ public final class Process implements Comparable<Process> {
 
     @Override
     public int compareTo(Process that) {
-        int res = Integer.compare(this.getArrivalTime(), that.getArrivalTime());
-        return res != 0 ? res : Long.compare(this.getProcessId(), that.getProcessId());
+        return Comparator.comparingInt(Process::getArrivalTime)
+            .thenComparingLong(Process::getProcessId)
+            .compare(this, that);
     }
 }
