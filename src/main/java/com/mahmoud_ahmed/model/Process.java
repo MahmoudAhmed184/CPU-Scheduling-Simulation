@@ -2,17 +2,26 @@ package com.mahmoud_ahmed.model;
 
 import java.util.Comparator;
 
+/**
+ * Represents a process in the CPU scheduling simulation.
+ * Each process has attributes for scheduling decisions and execution tracking.
+ */
 public final class Process implements Comparable<Process> {
-    private static long counter = 0;
-    private final long processId;
     private final int processNumber;
     private final int arrivalTime;
     private final int burstTime;
     private final int priority;
     private int remainingTime;
 
+    /**
+     * Creates a new process with the specified attributes.
+     *
+     * @param processNumber unique identifier for the process
+     * @param arrivalTime   time when the process arrives in the ready queue
+     * @param burstTime     total CPU time required by the process
+     * @param priority      priority level (lower values indicate higher priority)
+     */
     public Process(int processNumber, int arrivalTime, int burstTime, int priority) {
-        this.processId = counter++;
         this.processNumber = processNumber;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
@@ -20,17 +29,17 @@ public final class Process implements Comparable<Process> {
         this.remainingTime = burstTime;
     }
 
+    /**
+     * Copy constructor for creating a copy of an existing process.
+     *
+     * @param other the process to copy
+     */
     public Process(Process other) {
-        this.processId = counter++;
         this.processNumber = other.processNumber;
         this.arrivalTime = other.arrivalTime;
         this.burstTime = other.burstTime;
         this.priority = other.priority;
         this.remainingTime = other.remainingTime;
-    }
-
-    public long getProcessId() {
-        return this.processId;
     }
 
     public int getProcessNumber() {
@@ -60,7 +69,7 @@ public final class Process implements Comparable<Process> {
     @Override
     public int compareTo(Process that) {
         return Comparator.comparingInt(Process::getArrivalTime)
-            .thenComparingLong(Process::getProcessId)
-            .compare(this, that);
+                .thenComparingInt(Process::getProcessNumber)
+                .compare(this, that);
     }
 }
