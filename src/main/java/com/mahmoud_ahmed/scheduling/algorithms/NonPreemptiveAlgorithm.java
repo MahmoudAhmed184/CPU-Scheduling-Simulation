@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.model.ExecutionSegment;
-import com.mahmoud_ahmed.model.SchedulingState;
+import com.mahmoud_ahmed.scheduling.state.SchedulingState;
 
 public abstract class NonPreemptiveAlgorithm implements SchedulingAlgorithm {
     private final Comparator<Process> comparator;

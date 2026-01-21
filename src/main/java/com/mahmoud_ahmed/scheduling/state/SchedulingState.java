@@ -1,5 +1,7 @@
-package com.mahmoud_ahmed.model;
+package com.mahmoud_ahmed.scheduling.state;
 
+import com.mahmoud_ahmed.model.ExecutionSegment;
+import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.utils.SchedulingUtil;
 
 import java.util.*;
@@ -35,8 +37,8 @@ public class SchedulingState {
 
     public boolean hasUnfinishedProcesses() {
         return hasWaitingProcesses() ||
-               hasReadyProcesses() ||
-               hasActiveProcess();
+                hasReadyProcesses() ||
+                hasActiveProcess();
     }
 
     public boolean hasActiveProcess() {
@@ -57,8 +59,8 @@ public class SchedulingState {
 
     public boolean isCpuInIdleState() {
         return hasWaitingProcesses() &&
-               !hasReadyProcesses() &&
-               !hasActiveProcess();
+                !hasReadyProcesses() &&
+                !hasActiveProcess();
     }
 
     public void handleIdleState() {

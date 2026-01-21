@@ -1,4 +1,4 @@
-package com.mahmoud_ahmed.ui;
+package com.mahmoud_ahmed.presentation;
 
 import java.util.Arrays;
 import java.util.List;
@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import com.mahmoud_ahmed.model.ExecutionSegment;
 import com.mahmoud_ahmed.model.ProcessMetrics;
 import com.mahmoud_ahmed.model.Result;
-import com.mahmoud_ahmed.utils.TableGenerator;
 
 public class Console {
     private final TableGenerator tableGenerator;
@@ -25,7 +24,7 @@ public class Console {
 
         System.out.println("Execution Segments Table:");
         System.out.println(tableGenerator.generateTable(Arrays.asList(SEGMENT_TABLE_HEADERS), segmentRows));
-        
+
         System.out.println("Aggregated Process Statistics:");
         List<List<String>> rows = result.metrics().stream().map(ProcessMetrics::toList).collect(Collectors.toList());
         System.out.println(tableGenerator.generateTable(Arrays.asList(TABLE_HEADERS), rows));

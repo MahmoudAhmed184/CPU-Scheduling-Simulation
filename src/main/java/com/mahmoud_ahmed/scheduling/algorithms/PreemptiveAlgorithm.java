@@ -1,7 +1,9 @@
 package com.mahmoud_ahmed.scheduling.algorithms;
 
-import com.mahmoud_ahmed.model.*;
+import com.mahmoud_ahmed.model.ExecutionSegment;
 import com.mahmoud_ahmed.model.Process;
+import com.mahmoud_ahmed.scheduling.state.SchedulingState;
+import com.mahmoud_ahmed.scheduling.state.ExecutionSegmentBuilder;
 
 import java.util.*;
 
@@ -34,7 +36,7 @@ public abstract class PreemptiveAlgorithm implements SchedulingAlgorithm {
         if (!state.hasActiveProcess() && state.hasReadyProcesses()) {
             state.pollReadyProcessToSchedule();
             builder.withProcess(state.getActiveProcess())
-                .withStartTime(state.getCurrentTime());
+                    .withStartTime(state.getCurrentTime());
         }
     }
 
@@ -62,7 +64,6 @@ public abstract class PreemptiveAlgorithm implements SchedulingAlgorithm {
         Process activeProcess = state.getActiveProcess();
         activeProcess.setRemainingTime(activeProcess.getRemainingTime() - time);
     }
-
 
     abstract boolean shouldPreempt(Process activeProcess, Process arrivedProcess);
 }

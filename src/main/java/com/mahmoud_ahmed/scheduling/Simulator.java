@@ -2,9 +2,12 @@ package com.mahmoud_ahmed.scheduling;
 
 import java.util.List;
 
-import com.mahmoud_ahmed.model.*;
+import com.mahmoud_ahmed.model.ExecutionSegment;
+import com.mahmoud_ahmed.model.ProcessMetrics;
+import com.mahmoud_ahmed.model.Result;
 import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.scheduling.algorithms.SchedulingAlgorithm;
+import com.mahmoud_ahmed.scheduling.metrics.MetricsCalculator;
 
 public class Simulator {
 

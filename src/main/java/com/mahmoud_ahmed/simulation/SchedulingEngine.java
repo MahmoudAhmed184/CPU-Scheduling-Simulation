@@ -5,7 +5,7 @@ import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.model.Result;
 import com.mahmoud_ahmed.scheduling.Simulator;
 import com.mahmoud_ahmed.scheduling.algorithms.*;
-import com.mahmoud_ahmed.ui.Console;
+import com.mahmoud_ahmed.presentation.Console;
 
 public class SchedulingEngine {
     private final Simulator simulator;

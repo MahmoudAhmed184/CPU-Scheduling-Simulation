@@ -1,11 +1,15 @@
-package com.mahmoud_ahmed.model;
+package com.mahmoud_ahmed.scheduling.state;
+
+import com.mahmoud_ahmed.model.ExecutionSegment;
+import com.mahmoud_ahmed.model.Process;
 
 public class ExecutionSegmentBuilder {
     private Process process;
     private int startTime;
     private int endTime;
 
-    public ExecutionSegmentBuilder() {}
+    public ExecutionSegmentBuilder() {
+    }
 
     public ExecutionSegmentBuilder withProcess(Process process) {
         this.process = process;

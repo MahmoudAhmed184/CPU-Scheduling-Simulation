@@ -1,4 +1,4 @@
-package com.mahmoud_ahmed.model;
+package com.mahmoud_ahmed.scheduling.state;
 
 public class SchedulingClock {
     private int currentTime;
