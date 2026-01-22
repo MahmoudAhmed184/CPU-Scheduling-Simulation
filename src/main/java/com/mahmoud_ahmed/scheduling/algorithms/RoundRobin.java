@@ -1,6 +1,6 @@
 package com.mahmoud_ahmed.scheduling.algorithms;
 
-import com.mahmoud_ahmed.model.Process;
+import com.mahmoud_ahmed.scheduling.context.SchedulingContext;
 
 public class RoundRobin extends PreemptiveAlgorithm {
     private final int timeQuantum;
@@ -11,8 +11,8 @@ public class RoundRobin extends PreemptiveAlgorithm {
     }
 
     @Override
-    boolean shouldPreempt(Process activeProcess, Process arrivedProcess) {
-        return activeProcess != null &&
-               ((activeProcess.getBurstTime() - activeProcess.getRemainingTime()) % timeQuantum == 0);
+    protected boolean shouldPreempt(SchedulingContext active, SchedulingContext next) {
+        return active != null &&
+                (active.getElapsedTime() % timeQuantum == 0);
     }
 }

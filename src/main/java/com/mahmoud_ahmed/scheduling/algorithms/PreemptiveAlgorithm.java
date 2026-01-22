@@ -2,15 +2,16 @@ package com.mahmoud_ahmed.scheduling.algorithms;
 
 import com.mahmoud_ahmed.model.ExecutionSegment;
 import com.mahmoud_ahmed.model.Process;
+import com.mahmoud_ahmed.scheduling.context.SchedulingContext;
 import com.mahmoud_ahmed.scheduling.state.SchedulingState;
 import com.mahmoud_ahmed.scheduling.state.ExecutionSegmentBuilder;
 
 import java.util.*;
 
 public abstract class PreemptiveAlgorithm implements SchedulingAlgorithm {
-    private final Comparator<Process> comparator;
+    private final Comparator<SchedulingContext> comparator;
 
-    public PreemptiveAlgorithm(Comparator<Process> comparator) {
+    public PreemptiveAlgorithm(Comparator<SchedulingContext> comparator) {
         this.comparator = comparator;
     }
 
@@ -18,6 +19,7 @@ public abstract class PreemptiveAlgorithm implements SchedulingAlgorithm {
     public List<ExecutionSegment> schedule(List<Process> processes) {
         SchedulingState state = new SchedulingState(processes, comparator);
         ExecutionSegmentBuilder builder = new ExecutionSegmentBuilder();
+
         while (state.hasUnfinishedProcesses()) {
             state.moveArrivedProcessesToReadyQueue();
             if (state.isCpuInIdleState()) {
@@ -26,44 +28,38 @@ public abstract class PreemptiveAlgorithm implements SchedulingAlgorithm {
             }
             handlePreemption(state, builder);
             selectProcessToRun(state, builder);
-            scheduleActiveProcessFor(state, 1);
+            executeForOneTimeUnit(state);
             handleFinishedProcess(state, builder);
         }
         return state.getExecutionHistory();
     }
 
-    private static void selectProcessToRun(SchedulingState state, ExecutionSegmentBuilder builder) {
+    private void selectProcessToRun(SchedulingState state, ExecutionSegmentBuilder builder) {
         if (!state.hasActiveProcess() && state.hasReadyProcesses()) {
             state.pollReadyProcessToSchedule();
-            builder.withProcess(state.getActiveProcess())
+            builder.withProcess(state.getActiveContext().getProcess())
                     .withStartTime(state.getCurrentTime());
         }
     }
 
-    private static void handleFinishedProcess(SchedulingState state, ExecutionSegmentBuilder builder) {
+    private void handleFinishedProcess(SchedulingState state, ExecutionSegmentBuilder builder) {
         if (state.hasActiveProcessFinished()) {
             state.recordExecutionSegment(builder.withEndTime(state.getCurrentTime()).build());
-            state.setActiveProcess(null);
+            state.clearActiveContext();
         }
     }
 
     private void handlePreemption(SchedulingState state, ExecutionSegmentBuilder builder) {
-        if (shouldPreempt(state.getActiveProcess(), state.peekNextReadyProcess())) {
+        if (shouldPreempt(state.getActiveContext(), state.peekNextReadyContext())) {
             state.recordExecutionSegment(builder.withEndTime(state.getCurrentTime()).build());
-            preemptActiveProcess(state);
+            state.requeueActiveProcess();
         }
     }
 
-    public void preemptActiveProcess(SchedulingState state) {
-        state.addProcessToReadyQueue(state.getActiveProcess());
-        state.setActiveProcess(null);
+    private void executeForOneTimeUnit(SchedulingState state) {
+        state.advanceClock(1);
+        state.getActiveContext().executeFor(1);
     }
 
-    public void scheduleActiveProcessFor(SchedulingState state, int time) {
-        state.advanceClock(time);
-        Process activeProcess = state.getActiveProcess();
-        activeProcess.setRemainingTime(activeProcess.getRemainingTime() - time);
-    }
-
-    abstract boolean shouldPreempt(Process activeProcess, Process arrivedProcess);
+    protected abstract boolean shouldPreempt(SchedulingContext active, SchedulingContext next);
 }

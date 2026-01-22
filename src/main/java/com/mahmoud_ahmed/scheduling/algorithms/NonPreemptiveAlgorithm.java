@@ -5,12 +5,13 @@ import java.util.List;
 
 import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.model.ExecutionSegment;
+import com.mahmoud_ahmed.scheduling.context.SchedulingContext;
 import com.mahmoud_ahmed.scheduling.state.SchedulingState;
 
 public abstract class NonPreemptiveAlgorithm implements SchedulingAlgorithm {
-    private final Comparator<Process> comparator;
+    private final Comparator<SchedulingContext> comparator;
 
-    public NonPreemptiveAlgorithm(Comparator<Process> comparator) {
+    public NonPreemptiveAlgorithm(Comparator<SchedulingContext> comparator) {
         this.comparator = comparator;
     }
 
@@ -31,10 +32,11 @@ public abstract class NonPreemptiveAlgorithm implements SchedulingAlgorithm {
         return state.getExecutionHistory();
     }
 
-    public void scheduleActiveProcess(SchedulingState state) {
+    private void scheduleActiveProcess(SchedulingState state) {
+        SchedulingContext context = state.getActiveContext();
         int startTime = state.getCurrentTime();
-        state.advanceClock(state.getActiveProcess().getBurstTime());
-        state.recordExecutionSegment(new ExecutionSegment(state.getActiveProcess(), startTime, state.getCurrentTime()));
-        state.setActiveProcess(null);
+        state.advanceClock(context.getBurstTime());
+        state.recordExecutionSegment(new ExecutionSegment(context.getProcess(), startTime, state.getCurrentTime()));
+        state.clearActiveContext();
     }
 }
