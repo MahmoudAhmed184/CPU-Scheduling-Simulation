@@ -19,7 +19,7 @@ public class MetricsCalculator {
 
     private static Map<Integer, List<ExecutionSegment>> groupSegmentsByProcess(List<ExecutionSegment> segments) {
         return segments.stream()
-                .collect(Collectors.groupingBy(segment -> segment.process().getProcessNumber()));
+                .collect(Collectors.groupingBy(segment -> segment.process().processNumber()));
     }
 
     private static ProcessMetrics calculateProcessMetrics(List<ExecutionSegment> segments) {

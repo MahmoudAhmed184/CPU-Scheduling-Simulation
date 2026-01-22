@@ -2,14 +2,16 @@ package com.mahmoud_ahmed.scheduling.context;
 
 import com.mahmoud_ahmed.model.Process;
 
-public class SchedulingContext {
+import java.util.Comparator;
+
+public class SchedulingContext implements Comparable<SchedulingContext> {
     private final Process process;
     private int remainingTime;
     private int elapsedTime;
 
     public SchedulingContext(Process process) {
         this.process = process;
-        this.remainingTime = process.getBurstTime();
+        this.remainingTime = process.burstTime();
         this.elapsedTime = 0;
     }
 
@@ -35,18 +37,25 @@ public class SchedulingContext {
     }
 
     public int getProcessNumber() {
-        return process.getProcessNumber();
+        return process.processNumber();
     }
 
     public int getArrivalTime() {
-        return process.getArrivalTime();
+        return process.arrivalTime();
     }
 
     public int getBurstTime() {
-        return process.getBurstTime();
+        return process.burstTime();
     }
 
     public int getPriority() {
-        return process.getPriority();
+        return process.priority();
+    }
+
+    @Override
+    public int compareTo(SchedulingContext that) {
+        return Comparator.comparingInt(SchedulingContext::getArrivalTime)
+                .thenComparingInt(SchedulingContext::getProcessNumber)
+                .compare(this, that);
     }
 }

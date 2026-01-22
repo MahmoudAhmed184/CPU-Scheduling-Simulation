@@ -12,14 +12,14 @@ public final class ResultFormatter {
 
     public static List<String> formatSegment(ExecutionSegment segment) {
         return List.of(
-                Integer.toString(segment.process().getProcessNumber()),
+                Integer.toString(segment.process().processNumber()),
                 Integer.toString(segment.startTime()),
                 Integer.toString(segment.endTime()));
     }
 
     public static List<String> formatMetrics(ProcessMetrics metrics) {
         return List.of(
-                Integer.toString(metrics.getProcess().getProcessNumber()),
+                Integer.toString(metrics.getProcess().processNumber()),
                 Integer.toString(metrics.getStartExecutionTime()),
                 Integer.toString(metrics.getCompletionTime()),
                 Integer.toString(metrics.getTurnaroundTime()),

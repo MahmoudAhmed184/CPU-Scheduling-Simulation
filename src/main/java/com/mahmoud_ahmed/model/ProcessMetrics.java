@@ -11,8 +11,8 @@ public class ProcessMetrics {
         this.process = process;
         this.startExecutionTime = startExecutionTime;
         this.completionTime = completionTime;
-        this.turnaroundTime = completionTime - process.getArrivalTime();
-        this.waitingTime = turnaroundTime - process.getBurstTime();
+        this.turnaroundTime = completionTime - process.arrivalTime();
+        this.waitingTime = turnaroundTime - process.burstTime();
     }
 
     public Process getProcess() {

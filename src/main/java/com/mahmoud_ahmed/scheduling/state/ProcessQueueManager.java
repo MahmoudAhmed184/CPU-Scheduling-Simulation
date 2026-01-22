@@ -19,9 +19,8 @@ public class ProcessQueueManager {
 
     private static List<SchedulingContext> wrapAndSortProcesses(List<Process> processes) {
         return processes.stream()
-                .sorted(Comparator.comparingInt(Process::getArrivalTime)
-                        .thenComparingInt(Process::getProcessNumber))
                 .map(SchedulingContext::new)
+                .sorted()
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
