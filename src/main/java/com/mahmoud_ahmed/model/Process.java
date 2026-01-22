@@ -7,14 +7,12 @@ public final class Process implements Comparable<Process> {
     private final int arrivalTime;
     private final int burstTime;
     private final int priority;
-    private int remainingTime;
 
     public Process(int processNumber, int arrivalTime, int burstTime, int priority) {
         this.processNumber = processNumber;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
         this.priority = priority;
-        this.remainingTime = burstTime;
     }
 
     public Process(Process other) {
@@ -22,7 +20,6 @@ public final class Process implements Comparable<Process> {
         this.arrivalTime = other.arrivalTime;
         this.burstTime = other.burstTime;
         this.priority = other.priority;
-        this.remainingTime = other.remainingTime;
     }
 
     public int getProcessNumber() {
@@ -39,14 +36,6 @@ public final class Process implements Comparable<Process> {
 
     public int getPriority() {
         return this.priority;
-    }
-
-    public int getRemainingTime() {
-        return this.remainingTime;
-    }
-
-    public void setRemainingTime(int remainingTime) {
-        this.remainingTime = remainingTime;
     }
 
     @Override
