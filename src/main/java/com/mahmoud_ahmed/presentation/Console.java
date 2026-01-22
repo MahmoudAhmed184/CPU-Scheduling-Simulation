@@ -3,8 +3,6 @@ package com.mahmoud_ahmed.presentation;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.mahmoud_ahmed.model.ExecutionSegment;
-import com.mahmoud_ahmed.model.ProcessMetrics;
 import com.mahmoud_ahmed.model.Result;
 
 public class Console {
@@ -19,14 +17,16 @@ public class Console {
 
     public void display(Result result) {
         List<List<String>> segmentRows = result.executionSegments().stream()
-                .map(ExecutionSegment::toList)
+                .map(ResultFormatter::formatSegment)
                 .collect(Collectors.toList());
 
         System.out.println("Execution Segments Table:");
         System.out.println(tableGenerator.generateTable(Arrays.asList(SEGMENT_TABLE_HEADERS), segmentRows));
 
         System.out.println("Aggregated Process Statistics:");
-        List<List<String>> rows = result.metrics().stream().map(ProcessMetrics::toList).collect(Collectors.toList());
+        List<List<String>> rows = result.metrics().stream()
+                .map(ResultFormatter::formatMetrics)
+                .collect(Collectors.toList());
         System.out.println(tableGenerator.generateTable(Arrays.asList(TABLE_HEADERS), rows));
 
         System.out.println("Algorithm Average Waiting Time: " + result.algorithmAverageWaitingTime());

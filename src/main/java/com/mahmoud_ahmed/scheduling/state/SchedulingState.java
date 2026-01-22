@@ -2,9 +2,9 @@ package com.mahmoud_ahmed.scheduling.state;
 
 import com.mahmoud_ahmed.model.ExecutionSegment;
 import com.mahmoud_ahmed.model.Process;
-import com.mahmoud_ahmed.utils.SchedulingUtil;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SchedulingState {
     private final Queue<Process> readyQueue;
@@ -15,10 +15,17 @@ public class SchedulingState {
 
     public SchedulingState(List<Process> processes, Comparator<Process> comparator) {
         this.readyQueue = comparator == null ? new LinkedList<>() : new PriorityQueue<>(comparator);
-        this.processes = SchedulingUtil.sortedProcessesByArrivalTime(processes);
+        this.processes = sortProcessesByArrivalTime(processes);
         this.clock = new SchedulingClock();
         this.timeline = new ArrayList<>();
         this.activeProcess = null;
+    }
+
+    private static List<Process> sortProcessesByArrivalTime(List<Process> processes) {
+        return processes.stream()
+                .map(Process::new)
+                .sorted()
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     public Process getActiveProcess() {

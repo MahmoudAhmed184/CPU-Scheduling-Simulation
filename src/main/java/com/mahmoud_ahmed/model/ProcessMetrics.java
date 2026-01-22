@@ -1,7 +1,5 @@
 package com.mahmoud_ahmed.model;
 
-import java.util.List;
-
 public class ProcessMetrics {
     private final Process process;
     private final int startExecutionTime;
@@ -35,14 +33,5 @@ public class ProcessMetrics {
 
     public int getWaitingTime() {
         return this.waitingTime;
-    }
-
-    public List<String> toList() {
-        return List.of(
-                Integer.toString(process.getProcessNumber()),
-                Integer.toString(startExecutionTime),
-                Integer.toString(completionTime),
-                Integer.toString(turnaroundTime),
-                Integer.toString(waitingTime));
     }
 }
