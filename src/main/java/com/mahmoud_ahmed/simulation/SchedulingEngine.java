@@ -5,15 +5,15 @@ import com.mahmoud_ahmed.model.Process;
 import com.mahmoud_ahmed.model.Result;
 import com.mahmoud_ahmed.scheduling.Simulator;
 import com.mahmoud_ahmed.scheduling.algorithms.*;
-import com.mahmoud_ahmed.presentation.Console;
+import com.mahmoud_ahmed.presentation.ConsolePresenter;
 
 public class SchedulingEngine {
     private final Simulator simulator;
-    private final Console console;
+    private final ConsolePresenter console;
 
     public SchedulingEngine() {
         this.simulator = new Simulator();
-        this.console = new Console();
+        this.console = new ConsolePresenter();
     }
 
     public void runFirstComeFirstServe(List<Process> processes) {

@@ -5,18 +5,18 @@ import java.util.List;
 import java.util.Map;
 
 public class TableGenerator {
-    private final int PADDING_SIZE = 2;
-    private String NEW_LINE = "\n";
-    private String TABLE_JOINT_SYMBOL = "+";
-    private String TABLE_V_SPLIT_SYMBOL = "|";
-    private String TABLE_H_SPLIT_SYMBOL = "-";
+    private static final int PADDING_SIZE = 2;
+    private static final String NEW_LINE = "\n";
+    private static final String TABLE_JOINT_SYMBOL = "+";
+    private static final String TABLE_V_SPLIT_SYMBOL = "|";
+    private static final String TABLE_H_SPLIT_SYMBOL = "-";
 
     public String generateTable(List<String> headersList, List<List<String>> rowsList, int... overRiddenHeaderHeight) {
         StringBuilder stringBuilder = new StringBuilder();
 
         int rowHeight = overRiddenHeaderHeight.length > 0 ? overRiddenHeaderHeight[0] : 1;
 
-        Map<Integer, Integer> columnMaxWidthMapping = getMaximumWidhtofTable(headersList, rowsList);
+        Map<Integer, Integer> columnMaxWidthMapping = getMaximumWidthOfTable(headersList, rowsList);
 
         stringBuilder.append(NEW_LINE);
         stringBuilder.append(NEW_LINE);
@@ -52,9 +52,7 @@ public class TableGenerator {
     }
 
     private void fillSpace(StringBuilder stringBuilder, int length) {
-        for (int i = 0; i < length; i++) {
-            stringBuilder.append(" ");
-        }
+        stringBuilder.append(" ".repeat(length));
     }
 
     private void createRowLine(StringBuilder stringBuilder, int headersListSize,
@@ -63,15 +61,12 @@ public class TableGenerator {
             if (i == 0) {
                 stringBuilder.append(TABLE_JOINT_SYMBOL);
             }
-
-            for (int j = 0; j < columnMaxWidthMapping.get(i) + PADDING_SIZE * 2; j++) {
-                stringBuilder.append(TABLE_H_SPLIT_SYMBOL);
-            }
+            stringBuilder.append(TABLE_H_SPLIT_SYMBOL.repeat(columnMaxWidthMapping.get(i) + PADDING_SIZE * 2));
             stringBuilder.append(TABLE_JOINT_SYMBOL);
         }
     }
 
-    private Map<Integer, Integer> getMaximumWidhtofTable(List<String> headersList, List<List<String>> rowsList) {
+    private Map<Integer, Integer> getMaximumWidthOfTable(List<String> headersList, List<List<String>> rowsList) {
         Map<Integer, Integer> columnMaxWidthMapping = new HashMap<>();
 
         for (int columnIndex = 0; columnIndex < headersList.size(); columnIndex++) {

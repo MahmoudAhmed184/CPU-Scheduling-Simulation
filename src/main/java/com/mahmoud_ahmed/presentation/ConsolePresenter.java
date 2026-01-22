@@ -5,13 +5,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import com.mahmoud_ahmed.model.Result;
 
-public class Console {
+public class ConsolePresenter {
     private final TableGenerator tableGenerator;
     private static final String[] TABLE_HEADERS = { "Process Number", "Start Execution Time", "Completion Time",
             "Turn Around Time", "Waiting Time" };
     private static final String[] SEGMENT_TABLE_HEADERS = { "Process Number", "Start Time", "Stop Time" };
 
-    public Console() {
+    public ConsolePresenter() {
         this.tableGenerator = new TableGenerator();
     }
 
