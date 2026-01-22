@@ -2,108 +2,80 @@ package com.mahmoud_ahmed.scheduling.state;
 
 import com.mahmoud_ahmed.model.ExecutionSegment;
 import com.mahmoud_ahmed.model.Process;
+import com.mahmoud_ahmed.scheduling.context.SchedulingContext;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Comparator;
+import java.util.List;
 
 public class SchedulingState {
-    private final Queue<Process> readyQueue;
-    private final List<Process> processes;
+    private final ProcessQueueManager queueManager;
     private final SchedulingClock clock;
-    private final List<ExecutionSegment> timeline;
-    private Process activeProcess;
+    private final ExecutionRecorder recorder;
 
-    public SchedulingState(List<Process> processes, Comparator<Process> comparator) {
-        this.readyQueue = comparator == null ? new LinkedList<>() : new PriorityQueue<>(comparator);
-        this.processes = sortProcessesByArrivalTime(processes);
+    public SchedulingState(List<Process> processes, Comparator<SchedulingContext> comparator) {
+        this.queueManager = new ProcessQueueManager(processes, comparator);
         this.clock = new SchedulingClock();
-        this.timeline = new ArrayList<>();
-        this.activeProcess = null;
-    }
-
-    private static List<Process> sortProcessesByArrivalTime(List<Process> processes) {
-        return processes.stream()
-                .map(Process::new)
-                .sorted()
-                .collect(Collectors.toCollection(LinkedList::new));
-    }
-
-    public Process getActiveProcess() {
-        return activeProcess;
-    }
-
-    public void setActiveProcess(Process process) {
-        this.activeProcess = process;
+        this.recorder = new ExecutionRecorder();
     }
 
     public void moveArrivedProcessesToReadyQueue() {
-        while (hasWaitingProcesses() && hasProcessReached(processes.getFirst())) {
-            readyQueue.add(processes.removeFirst());
-        }
+        queueManager.moveArrivedToReady(clock.getCurrentTime());
     }
 
     public boolean hasUnfinishedProcesses() {
-        return hasWaitingProcesses() ||
-                hasReadyProcesses() ||
-                hasActiveProcess();
+        return queueManager.hasUnfinished();
     }
 
     public boolean hasActiveProcess() {
-        return activeProcess != null;
+        return queueManager.hasActive();
     }
 
     public boolean hasReadyProcesses() {
-        return !readyQueue.isEmpty();
-    }
-
-    private boolean hasWaitingProcesses() {
-        return !processes.isEmpty();
-    }
-
-    private boolean hasProcessReached(Process process) {
-        return clock.isBeforeOrAt(process.getArrivalTime());
+        return queueManager.hasReady();
     }
 
     public boolean isCpuInIdleState() {
-        return hasWaitingProcesses() &&
-                !hasReadyProcesses() &&
-                !hasActiveProcess();
+        return queueManager.hasWaiting() && !queueManager.hasReady() && !queueManager.hasActive();
     }
 
     public void handleIdleState() {
-        advanceClockToNextProcessArrivalTime();
-    }
-
-    private void advanceClockToNextProcessArrivalTime() {
-        clock.setTime(processes.getFirst().getArrivalTime());
+        clock.setTime(queueManager.getNextArrivalTime());
     }
 
     public void pollReadyProcessToSchedule() {
-        activeProcess = readyQueue.poll();
+        queueManager.activateNextReady();
     }
 
     public int getCurrentTime() {
         return clock.getCurrentTime();
     }
 
-    public Process peekNextReadyProcess() {
-        return readyQueue.peek();
+    public SchedulingContext getActiveContext() {
+        return queueManager.getActiveContext();
+    }
+
+    public SchedulingContext peekNextReadyContext() {
+        return queueManager.peekNextReady();
     }
 
     public boolean hasActiveProcessFinished() {
-        return activeProcess.getRemainingTime() == 0;
+        return queueManager.getActiveContext().hasFinished();
     }
 
-    public void recordExecutionSegment(ExecutionSegment executionSegment) {
-        timeline.add(executionSegment);
+    public void recordExecutionSegment(ExecutionSegment segment) {
+        recorder.record(segment);
     }
 
     public List<ExecutionSegment> getExecutionHistory() {
-        return timeline;
+        return recorder.getHistory();
     }
 
-    public void addProcessToReadyQueue(Process process) {
-        readyQueue.add(process);
+    public void requeueActiveProcess() {
+        queueManager.requeueActive();
+    }
+
+    public void clearActiveContext() {
+        queueManager.clearActive();
     }
 
     public void advanceClock(int time) {
